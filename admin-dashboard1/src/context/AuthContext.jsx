@@ -1,12 +1,16 @@
+// src/context/AuthContext.jsx
+
 import React, { createContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axiosConfig';
 
+// 1. Create the context
 export const AuthContext = createContext(null);
 
+// 2. Create the Provider component (The "Power Outlet")
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true); // To handle initial auth check
+    const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -21,7 +25,6 @@ export const AuthProvider = ({ children }) => {
         try {
             const { data } = await api.post('/auth/login', { email, password });
             if (data.role !== 'admin') {
-                // You can replace this with a proper error message state
                 alert('Access Denied: Only admins can log in here.');
                 return;
             }
@@ -40,7 +43,7 @@ export const AuthProvider = ({ children }) => {
         navigate('/login');
     };
 
-    const value = { user, login, logout, isAuthenticated: !!user };
+    const value = { user, login, logout, isAuthenticated: !!user, loading };
 
     // Don't render children until the initial auth check is complete
     return (

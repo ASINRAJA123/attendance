@@ -10,8 +10,9 @@ const AdminLayout = () => {
 
     const navItems = [
         { text: 'Dashboard', path: '/dashboard' },
-        { text: 'Manage Users', path: '/users' },
-        { text: 'Reports', path: '/reports' },
+        { text: 'Manage Students', path: '/students' },
+        { text: 'Manage Teachers', path: '/teachers' },
+        { text: 'Grant OTP', path: '/grant-otp' },
     ];
 
     return (

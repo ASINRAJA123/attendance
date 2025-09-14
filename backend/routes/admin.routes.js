@@ -1,29 +1,34 @@
+// routes/admin.routes.js
+
 const express = require('express');
 const router = express.Router();
 const { protect, isAdmin } = require('../middleware/auth.middleware');
 const { 
     createUser, 
     getUsers,
-    getAttendanceReports 
+    getUserById,    // <-- Import
+    updateUser,     // <-- Import
+    deleteUser,     // <-- Import
+    getStudentAttendanceReport, // <-- Import
+    grantOtp        // <-- Import
 } = require('../controllers/admin.controller');
 
-// All routes here are protected and require admin access
 router.use(protect, isAdmin);
 
+// User Management Routes
 router.route('/users')
-    .post((req, res, next) => {
-        console.log('POST /api/admin/users called with body:', req.body);
-        next();
-    }, createUser)
-    .get((req, res, next) => {
-        console.log('GET /api/admin/users called');
-        next();
-    }, getUsers);
+    .post(createUser)
+    .get(getUsers);
 
-router.route('/reports/attendance')
-    .get((req, res, next) => {
-        console.log('GET /api/admin/reports/attendance called');
-        next();
-    }, getAttendanceReports);
+router.route('/users/:id')
+    .get(getUserById)
+    .put(updateUser)
+    .delete(deleteUser);
+
+// Reporting Routes
+router.get('/reports/student/:studentId', getStudentAttendanceReport);
+
+// OTP Granting Route
+router.post('/otp/grant', grantOtp);
 
 module.exports = router;

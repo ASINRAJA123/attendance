@@ -1,16 +1,13 @@
+// src/main.jsx (or index.js) - AFTER THE FIX
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
-import App from './App';
-import './index.css'; // Import the Tailwind CSS file here
+import App from './App'; // Just import the main App component
+import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <AuthProvider>
-        <App />
-      </AuthProvider>
-    </BrowserRouter>
+    {/* The App component now handles the Router and AuthProvider internally */}
+    <App />
   </React.StrictMode>,
 );

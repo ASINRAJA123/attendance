@@ -1,5 +1,6 @@
 const User = require('../models/user.model');
 const Attendance = require('../models/attendance.model');
+const Otp = require('../models/otp.model'); // <-- Add Otp model
 
 // @desc    Create a new user (by admin)
 // @route   POST /api/admin/users
@@ -87,5 +88,109 @@ exports.getAttendanceReports = async (req, res) => {
         res.json(attendanceRecords);
     } catch (error) {
         res.status(500).json({ message: 'Server Error' });
+    }
+};
+
+exports.getUserById = async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id)
+            .select('-passwordHash')
+            .populate('assignedTeachers', 'name email');
+        
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        res.json(user);
+    } catch (error) {
+        res.status(500).json({ message: 'Server Error' });
+    }
+};
+
+// @desc    Update a user
+// @route   PUT /api/admin/users/:id
+exports.updateUser = async (req, res) => {
+    const { name, rollNumber, email, classId, assignedTeachers, allTeachers } = req.body;
+    try {
+        const user = await User.findById(req.params.id);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        user.name = name || user.name;
+        user.email = email || user.email;
+        if (user.role === 'student') {
+            user.rollNumber = rollNumber || user.rollNumber;
+            user.classId = classId || user.classId;
+            user.allTeachers = allTeachers;
+            user.assignedTeachers = assignedTeachers || [];
+        }
+
+        const updatedUser = await user.save();
+        res.json(updatedUser);
+    } catch (error) {
+        res.status(500).json({ message: 'Server Error: ' + error.message });
+    }
+};
+
+// @desc    Delete a user
+// @route   DELETE /api/admin/users/:id
+exports.deleteUser = async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        await user.deleteOne(); // Mongoose v6+
+        res.json({ message: 'User removed successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'Server Error' });
+    }
+};
+
+// @desc    Get full attendance history for a specific student
+// @route   GET /api/admin/reports/student/:studentId
+exports.getStudentAttendanceReport = async (req, res) => {
+    try {
+        const { studentId } = req.params;
+        const records = await Attendance.find({ studentId })
+            .populate('teacherId', 'name')
+            .sort({ timestamp: -1 });
+
+        res.json(records);
+    } catch (error) {
+        res.status(500).json({ message: 'Server Error' });
+    }
+};
+
+// @desc    Admin grants an OTP on behalf of a teacher
+// @route   POST /api/admin/otp/grant
+exports.grantOtp = async (req, res) => {
+    const { teacherId, period } = req.body;
+    if (!teacherId || !period) {
+        return res.status(400).json({ message: 'Teacher ID and period are required.' });
+    }
+
+    try {
+        const teacher = await User.findById(teacherId);
+        if (!teacher || teacher.role !== 'teacher') {
+            return res.status(404).json({ message: 'Teacher not found.' });
+        }
+
+        const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+        await Otp.create({
+            otpCode,
+            teacherId,
+            period
+        });
+
+        res.status(201).json({ 
+            otp: otpCode, 
+            message: `OTP generated for ${teacher.name} for period ${period}`
+        });
+
+    } catch (error) {
+        res.status(500).json({ message: 'Server Error: ' + error.message });
     }
 };
