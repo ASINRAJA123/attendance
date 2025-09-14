@@ -1,24 +1,24 @@
-// screens/student_dashboard_screen.dart
+// screens/teacher_main_screen.dart
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
-import 'student/attendance_history_screen.dart'; // Create this file
-import 'student/otp_screen.dart'; // Create this file
+import 'teacher/teacher_otp_screen.dart'; // We will create this next
+import 'teacher/teacher_report_screen.dart'; // We will create this next
 
-class StudentDashboardScreen extends StatefulWidget {
-  const StudentDashboardScreen({super.key});
+class TeacherMainScreen extends StatefulWidget {
+  const TeacherMainScreen({super.key});
 
   @override
-  State<StudentDashboardScreen> createState() => _StudentDashboardScreenState();
+  State<TeacherMainScreen> createState() => _TeacherMainScreenState();
 }
 
-class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
+class _TeacherMainScreenState extends State<TeacherMainScreen> {
   int _selectedIndex = 0;
 
   static const List<Widget> _widgetOptions = <Widget>[
-    OtpScreen(),
-    AttendanceHistoryScreen(),
+    TeacherOtpScreen(),
+    TeacherReportScreen(),
   ];
 
   void _onItemTapped(int index) {
@@ -30,45 +30,32 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final user = Provider.of<AuthProvider>(context).user;
-    final title = user?.name ?? 'Student';
-    final subtitle = user?.rollNumber ?? user?.email ?? '';
-
     return Scaffold(
       appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Welcome, $title'),
-            Text(subtitle, style: Theme.of(context).textTheme.bodySmall),
-          ],
-        ),
+        title: Text('Welcome, ${user?.name ?? 'Teacher'}'),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () {
               Provider.of<AuthProvider>(context, listen: false).logout();
-              // Navigate back to login screen after logout
               Navigator.of(context).pushNamedAndRemoveUntil('/', (Route<dynamic> route) => false);
             },
           ),
         ],
       ),
-      body: Center(
-        child: _widgetOptions.elementAt(_selectedIndex),
-      ),
+      body: _widgetOptions.elementAt(_selectedIndex),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.pin),
-            label: 'Enter OTP',
+            label: 'Generate OTP',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.history),
-            label: 'My Attendance',
+            icon: Icon(Icons.bar_chart),
+            label: 'Attendance Report',
           ),
         ],
         currentIndex: _selectedIndex,
-        selectedItemColor: Colors.deepPurple,
         onTap: _onItemTapped,
       ),
     );

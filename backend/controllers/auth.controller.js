@@ -14,6 +14,7 @@ exports.loginUser = async (req, res) => {
                 _id: user._id,
                 name: user.name,
                 email: user.email,
+                rollNumber: user.rollNumber, // ADDED rollNumber to response
                 role: user.role,
                 token: generateToken(user._id, user.role),
             });

@@ -3,15 +3,29 @@ const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
     name: { type: String, required: true },
+    // ADDED rollNumber as the new primary identifier along with email
+    rollNumber: { 
+        type: String, 
+        trim: true,
+        sparse: true, // Allows null values without violating uniqueness
+        unique: true 
+    },
     email: { type: String, required: true, unique: true, lowercase: true },
     passwordHash: { type: String, required: true },
     role: { type: String, enum: ['admin', 'teacher', 'student'], required: true },
-    classId: { type: String, trim: true }, 
-
-    // NEW FIELDS
+    classId: { type: String, trim: true },
     allTeachers: { type: Boolean, default: false },
     assignedTeachers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
 }, { timestamps: true });
+
+// Add a pre-save hook to require rollNumber for students
+userSchema.pre('save', function(next) {
+    if (this.role === 'student' && !this.rollNumber) {
+        next(new Error('Roll number is required for students.'));
+    } else {
+        next();
+    }
+});
 
 // Compare passwords
 userSchema.methods.matchPassword = async function(enteredPassword) {

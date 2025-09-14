@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../screens/login_screen.dart';
 import '../screens/student_dashboard_screen.dart';
-import '../screens/teacher_dashboard_screen.dart';
+import '../screens/teacher_main_screen.dart';
 
 class AuthWrapper extends StatefulWidget {
   const AuthWrapper({super.key});
@@ -34,7 +34,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
         if (authProvider.userRole == 'teacher') {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (_) => const TeacherDashboardScreen()),
+            MaterialPageRoute(builder: (_) => const TeacherMainScreen()),
           );
         } else if (authProvider.userRole == 'student') {
           Navigator.pushReplacement(

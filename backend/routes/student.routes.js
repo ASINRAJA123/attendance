@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { protect, isStudent } = require('../middleware/auth.middleware');
-const { markAttendance } = require('../controllers/student.controller');
+const { markAttendance, getMyAttendanceHistory } = require('../controllers/student.controller');
 
 router.use(protect, isStudent);
 
@@ -10,5 +10,7 @@ router.post('/attendance/mark', (req, res, next) => {
     console.log('Request body:', req.body);
     next();
 }, markAttendance);
+
+router.get('/attendance/history', getMyAttendanceHistory);
 
 module.exports = router;

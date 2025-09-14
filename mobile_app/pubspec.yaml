@@ -44,6 +44,8 @@ dev_dependencies:
 
   # For simple global state management (to handle login state)
   provider: ^6.1.1
+  intl: ^0.18.1     # Version might be different
+
 
   # For storing the auth token on the device
   shared_preferences: ^2.2.2

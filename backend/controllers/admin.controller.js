@@ -4,28 +4,31 @@ const Attendance = require('../models/attendance.model');
 // @desc    Create a new user (by admin)
 // @route   POST /api/admin/users
 exports.createUser = async (req, res) => {
-    const { name, email, password, role, classId, allTeachers, assignedTeachers, assignedTeacherEmail } = req.body;
+    // ADDED rollNumber
+    const { name, rollNumber, email, password, role, classId, allTeachers, assignedTeachers, assignedTeacherEmail } = req.body;
 
     try {
-        const userExists = await User.findOne({ email });
-        if (userExists) {
-            return res.status(400).json({ message: 'User already exists' });
+        const emailExists = await User.findOne({ email });
+        if (emailExists) {
+            return res.status(400).json({ message: 'User with this email already exists' });
+        }
+
+        if (role === 'student') {
+            const rollNumberExists = await User.findOne({ rollNumber });
+            if (rollNumberExists) {
+                return res.status(400).json({ message: 'User with this roll number already exists' });
+            }
         }
 
         let teacherIds = [];
-
         if (role === 'student') {
-            // If student is assigned to all teachers
             if (allTeachers) {
-                teacherIds = []; // will mean "all teachers allowed"
+                teacherIds = [];
             } else {
-                // If frontend sends teacher IDs
                 if (assignedTeachers && Array.isArray(assignedTeachers)) {
                     const teachers = await User.find({ _id: { $in: assignedTeachers }, role: 'teacher' });
                     teacherIds = teachers.map(t => t._id);
                 }
-
-                // If frontend sends teacher email
                 if (assignedTeacherEmail) {
                     const teacher = await User.findOne({ email: assignedTeacherEmail, role: 'teacher' });
                     if (teacher) teacherIds.push(teacher._id);
@@ -35,8 +38,9 @@ exports.createUser = async (req, res) => {
 
         const user = await User.create({
             name,
+            rollNumber: role === 'student' ? rollNumber : null, // Store rollNumber only for students
             email,
-            passwordHash: password, // pre-save hook will hash
+            passwordHash: password,
             role,
             classId,
             allTeachers: role === 'student' ? allTeachers || false : false,
@@ -46,6 +50,7 @@ exports.createUser = async (req, res) => {
         res.status(201).json({
             _id: user._id,
             name: user.name,
+            rollNumber: user.rollNumber,
             email: user.email,
             role: user.role,
             classId: user.classId,
@@ -64,7 +69,7 @@ exports.getUsers = async (req, res) => {
     try {
         const users = await User.find({})
             .select('-passwordHash')
-            .populate('assignedTeachers', 'name email'); // now supports multiple
+            .populate('assignedTeachers', 'name email');
 
         res.json(users);
     } catch (error) {
@@ -77,7 +82,7 @@ exports.getUsers = async (req, res) => {
 exports.getAttendanceReports = async (req, res) => {
     try {
         const attendanceRecords = await Attendance.find({})
-            .populate('studentId', 'name email')
+            .populate('studentId', 'name email rollNumber') // ADDED rollNumber
             .populate('teacherId', 'name email');
         res.json(attendanceRecords);
     } catch (error) {

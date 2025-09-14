@@ -1,3 +1,5 @@
+// providers/auth_provider.dart
+
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -25,6 +27,7 @@ class AuthProvider with ChangeNotifier {
     _user = User(
       id: extractedUserData['id'],
       name: extractedUserData['name'],
+      rollNumber: extractedUserData['rollNumber'], // Load rollNumber
       email: extractedUserData['email'],
       role: extractedUserData['role'],
     );
@@ -42,6 +45,7 @@ class AuthProvider with ChangeNotifier {
       'token': _token,
       'id': _user!.id,
       'name': _user!.name,
+      'rollNumber': _user!.rollNumber, // Save rollNumber
       'email': _user!.email,
       'role': _user!.role,
     });

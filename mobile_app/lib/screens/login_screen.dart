@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../utils/snackbar_helper.dart';
-import 'teacher_dashboard_screen.dart';
+import 'teacher_main_screen.dart';
 import 'student_dashboard_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -42,7 +42,7 @@ class _LoginScreenState extends State<LoginScreen> {
         if (role == 'teacher') {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (_) => const TeacherDashboardScreen()),
+            MaterialPageRoute(builder: (_) => const TeacherMainScreen()),
           );
         } else if (role == 'student') {
           Navigator.pushReplacement(

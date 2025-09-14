@@ -1,13 +1,17 @@
+// routes/teacher.routes.js
+
 const express = require('express');
 const router = express.Router();
 const { protect, isTeacher } = require('../middleware/auth.middleware');
-const { generateOtp } = require('../controllers/teacher.controller');
+// <-- Import the new controller function
+const { generateOtp, getAttendanceReport } = require('../controllers/teacher.controller');
 
 router.use(protect, isTeacher);
 
-router.post('/otp/generate', (req, res, next) => {
-    console.log('POST /api/teacher/otp/generate called by user:', req.user?.id);
-    next();
-}, generateOtp);
+// Existing route for generating OTP
+router.post('/otp/generate', generateOtp);
+
+// NEW route for getting attendance reports
+router.get('/attendance/report', getAttendanceReport);
 
 module.exports = router;
