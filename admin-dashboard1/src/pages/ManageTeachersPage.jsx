@@ -7,6 +7,8 @@ import api from '../api/axiosConfig';
 const ManageTeachersPage = () => {
     const [teachers, setTeachers] = useState([]);
     const [loading, setLoading] = useState(true);
+    // --- NEW: State for the search term ---
+    const [searchTerm, setSearchTerm] = useState('');
 
     const fetchTeachers = async () => {
         setLoading(true);
@@ -29,7 +31,6 @@ const ManageTeachersPage = () => {
         if (window.confirm('Are you sure you want to delete this teacher? This may affect student assignments.')) {
             try {
                 await api.delete(`/admin/users/${teacherId}`);
-                // Refresh the list after deletion
                 fetchTeachers();
             } catch (error) {
                 console.error('Failed to delete teacher:', error);
@@ -37,6 +38,12 @@ const ManageTeachersPage = () => {
             }
         }
     };
+    
+    // --- NEW: Filter teachers based on the search term ---
+    const filteredTeachers = teachers.filter(teacher =>
+        teacher.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        teacher.email.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     if (loading) {
         return <div>Loading teachers...</div>;
@@ -51,6 +58,18 @@ const ManageTeachersPage = () => {
                 </Link>
             </div>
 
+            {/* --- NEW: Search Bar UI --- */}
+            <div className="mb-4">
+                <input
+                    type="text"
+                    placeholder="Search by name or email..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full max-w-md p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                />
+            </div>
+            {/* --- End of Search Bar --- */}
+
             <div className="bg-white shadow-md rounded-lg overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
@@ -61,8 +80,9 @@ const ManageTeachersPage = () => {
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                        {teachers.length > 0 ? (
-                            teachers.map((teacher) => (
+                        {/* --- MODIFIED: Map over the filtered list --- */}
+                        {filteredTeachers.length > 0 ? (
+                            filteredTeachers.map((teacher) => (
                                 <tr key={teacher._id}>
                                     <td className="px-6 py-4 whitespace-nowrap">{teacher.name}</td>
                                     <td className="px-6 py-4 whitespace-nowrap">{teacher.email}</td>
@@ -74,7 +94,9 @@ const ManageTeachersPage = () => {
                             ))
                         ) : (
                             <tr>
-                                <td colSpan="3" className="px-6 py-4 text-center text-gray-500">No teachers found.</td>
+                                <td colSpan="3" className="px-6 py-4 text-center text-gray-500">
+                                    No teachers found matching your search.
+                                </td>
                             </tr>
                         )}
                     </tbody>
