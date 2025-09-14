@@ -7,21 +7,25 @@ const userSchema = new mongoose.Schema({
     passwordHash: { type: String, required: true },
     role: { type: String, enum: ['admin', 'teacher', 'student'], required: true },
     classId: { type: String, trim: true }, 
-    assignedTeacher: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+
+    // NEW FIELDS
+    allTeachers: { type: Boolean, default: false },
+    assignedTeachers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
 }, { timestamps: true });
 
-// Method to compare passwords
+// Compare passwords
 userSchema.methods.matchPassword = async function(enteredPassword) {
     return await bcrypt.compare(enteredPassword, this.passwordHash);
 };
 
-// Middleware to hash password before saving (for new users or password changes)
+// Hash password before saving
 userSchema.pre('save', async function(next) {
     if (!this.isModified('passwordHash')) {
-        next();
+        return next();
     }
     const salt = await bcrypt.genSalt(10);
     this.passwordHash = await bcrypt.hash(this.passwordHash, salt);
+    next();
 });
 
 module.exports = mongoose.model('User', userSchema);

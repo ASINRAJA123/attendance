@@ -11,12 +11,10 @@ exports.generateOtp = async (req, res) => {
 
         await Otp.create({
             otpCode,
-            teacherId: teacherId
+            teacherId
         });
 
-        console.log(`POST /api/teacher/otp/generate called by user: ${teacherId}`);
-        console.log(`Generated OTP: ${otpCode}`);
-
+        console.log(`Generated OTP for teacher ${teacherId}: ${otpCode}`);
         res.status(201).json({ otp: otpCode });
 
     } catch (error) {

@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  // Use your computer's local network IP address here, not localhost.
   static const String _baseUrl = 'http://localhost:5001/api';
 
   // ---------------- LOGIN ----------------
@@ -50,27 +49,50 @@ class ApiService {
   }
 
   // ---------------- MARK ATTENDANCE ----------------
-  Future<String> markAttendance(String otp, String token) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$_baseUrl/student/attendance/mark'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode({'otp': otp}),
-      );
+// ---------------- MARK ATTENDANCE ----------------
+Future<Map<String, dynamic>> markAttendance(String otp, String token) async {
+  try {
+    final response = await http.post(
+      Uri.parse('$_baseUrl/student/attendance/mark'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({'otp': otp}),
+    );
 
-      final data = jsonDecode(response.body);
+    final data = jsonDecode(response.body);
 
-      if (response.statusCode == 201) {
-        return data['message'];
-      } else {
-        // Show actual backend error message instead of generic "network error"
-        throw Exception('Failed to mark attendance: ${data['message'] ?? 'Unknown error'}');
-      }
-    } catch (e) {
-      throw Exception('Error connecting to server during attendance marking: $e');
+    if (response.statusCode == 201) {
+      return data; // return full JSON (teacherName, message, etc.)
+    } else {
+      throw Exception('Failed to mark attendance: ${data['message'] ?? 'Unknown error'}');
     }
+  } catch (e) {
+    throw Exception('Error connecting to server during attendance marking: $e');
   }
+}
+
+// ---------------- GET MARKED STUDENTS (Teacher) ----------------
+Future<List<String>> getMarkedStudents(String otp, String token) async {
+  try {
+    final response = await http.get(
+      Uri.parse('$_baseUrl/teacher/attendance/students/$otp'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    final data = jsonDecode(response.body);
+
+    if (response.statusCode == 200) {
+      return List<String>.from(data.map((s) => s['name'])); // just student names
+    } else {
+      throw Exception('Failed to fetch students: ${data['message'] ?? 'Unknown error'}');
+    }
+  } catch (e) {
+    throw Exception('Error fetching marked students: $e');
+  }
+}
 }

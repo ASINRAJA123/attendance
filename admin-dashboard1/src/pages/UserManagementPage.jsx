@@ -4,12 +4,16 @@ import AddUserModal from '../components/AddUserModal';
 
 const UserManagementPage = () => {
     const [users, setUsers] = useState([]);
+    const [teachers, setTeachers] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const fetchUsers = async () => {
         try {
             const { data } = await api.get('/admin/users');
             setUsers(data);
+            // Extract teachers separately
+            const teacherList = data.filter(u => u.role === 'teacher');
+            setTeachers(teacherList);
         } catch (error) {
             console.error('Failed to fetch users:', error);
         }
@@ -26,7 +30,7 @@ const UserManagementPage = () => {
             fetchUsers();
         } catch (error) {
             console.error('Failed to create user:', error);
-            alert('Failed to create user. Check the console for details.');
+            alert('Failed to create user. Check console for details.');
         }
     };
 
@@ -47,28 +51,32 @@ const UserManagementPage = () => {
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
                             <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class ID</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned Teacher</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Class ID</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Assigned Teachers</th>
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
                             {users.map((user) => (
                                 <tr key={user._id}>
-                                    <td className="px-6 py-4 whitespace-nowrap">{user.name}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap">{user.email}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
+                                    <td className="px-6 py-4">{user.name}</td>
+                                    <td className="px-6 py-4">{user.email}</td>
+                                    <td className="px-6 py-4">
                                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                            user.role === 'admin' ? 'bg-red-100 text-red-800' : 
+                                            user.role === 'admin' ? 'bg-red-100 text-red-800' :
                                             user.role === 'teacher' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
                                         }`}>
                                             {user.role}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">{user.classId || 'N/A'}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap">{user.assignedTeacherName || 'N/A'}</td>
+                                    <td className="px-6 py-4">{user.classId || 'N/A'}</td>
+                                    <td className="px-6 py-4">
+                                        {user.assignedTeachers?.length 
+                                            ? user.assignedTeachers.map(t => t.name).join(', ')
+                                            : 'All Teachers'}
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
@@ -80,6 +88,7 @@ const UserManagementPage = () => {
                 open={isModalOpen}
                 handleClose={() => setIsModalOpen(false)}
                 handleSubmit={handleCreateUser}
+                teachers={teachers}
             />
         </>
     );

@@ -1,79 +1,89 @@
-import React, { useState, useEffect } from 'react';
-import api from '../api/axiosConfig';
+import React, { useState } from 'react';
 
-const AddUserModal = ({ open, handleClose, handleSubmit }) => {
+const AddUserModal = ({ open, handleClose, handleSubmit, teachers }) => {
     const [formData, setFormData] = useState({
         name: '',
         email: '',
         password: '',
         role: 'student',
         classId: '',
-        assignedTeacher: '',
+        assignedTeachers: [],
+        allTeachers: false
     });
 
-    const [teachers, setTeachers] = useState([]);
-
-    // Fetch all teachers for dropdown
-    useEffect(() => {
-        const fetchTeachers = async () => {
-            try {
-                const { data } = await api.get('/admin/users?role=teacher');
-                setTeachers(data);
-            } catch (error) {
-                console.error('Failed to fetch teachers:', error);
-            }
-        };
-        fetchTeachers();
-    }, []);
-
-    if (!open) return null;
-
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        const { name, value, type, checked } = e.target;
+        if (type === 'checkbox') {
+            setFormData(prev => ({ ...prev, [name]: checked }));
+        } else {
+            setFormData(prev => ({ ...prev, [name]: value }));
+        }
     };
 
-    const onFormSubmit = (e) => {
+    const handleTeacherSelect = (teacherId) => {
+        setFormData(prev => {
+            if (prev.assignedTeachers.includes(teacherId)) {
+                return { ...prev, assignedTeachers: prev.assignedTeachers.filter(id => id !== teacherId) };
+            } else {
+                return { ...prev, assignedTeachers: [...prev.assignedTeachers, teacherId] };
+            }
+        });
+    };
+
+    const onSubmit = (e) => {
         e.preventDefault();
         handleSubmit(formData);
     };
 
+    if (!open) return null;
+
     return (
-        <div 
-            className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center"
-            onClick={handleClose}
-        >
-            <div 
-                className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md"
-                onClick={e => e.stopPropagation()} // Prevent closing modal when clicking inside
-            >
-                <h2 className="text-2xl font-bold mb-6">Add New User</h2>
-                <form onSubmit={onFormSubmit} className="space-y-4">
-                    <input type="text" name="name" placeholder="Full Name" required value={formData.name} onChange={handleChange} className="w-full p-2 border rounded-md" />
-                    <input type="email" name="email" placeholder="Email" required value={formData.email} onChange={handleChange} className="w-full p-2 border rounded-md" />
-                    <input type="password" name="password" placeholder="Password" required value={formData.password} onChange={handleChange} className="w-full p-2 border rounded-md" />
-                    <select name="role" value={formData.role} onChange={handleChange} className="w-full p-2 border rounded-md">
+        <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center">
+            <div className="bg-white rounded-lg p-6 w-full max-w-lg">
+                <h2 className="text-xl font-bold mb-4">Add User</h2>
+                <form onSubmit={onSubmit} className="space-y-4">
+                    <input type="text" name="name" placeholder="Name" className="w-full border p-2 rounded" value={formData.name} onChange={handleChange} required />
+                    <input type="email" name="email" placeholder="Email" className="w-full border p-2 rounded" value={formData.email} onChange={handleChange} required />
+                    <input type="password" name="password" placeholder="Password" className="w-full border p-2 rounded" value={formData.password} onChange={handleChange} required />
+
+                    <select name="role" className="w-full border p-2 rounded" value={formData.role} onChange={handleChange}>
                         <option value="student">Student</option>
                         <option value="teacher">Teacher</option>
                         <option value="admin">Admin</option>
                     </select>
 
-                    {/* Only for students */}
                     {formData.role === 'student' && (
                         <>
-                            <input type="text" name="classId" placeholder="Class ID" value={formData.classId} onChange={handleChange} className="w-full p-2 border rounded-md" />
-                            
-                            <select name="assignedTeacher" value={formData.assignedTeacher} onChange={handleChange} required className="w-full p-2 border rounded-md">
-                                <option value="">Select Teacher</option>
-                                {teachers.map(teacher => (
-                                    <option key={teacher._id} value={teacher._id}>{teacher.name} ({teacher.email})</option>
-                                ))}
-                            </select>
+                            <input type="text" name="classId" placeholder="Class ID" className="w-full border p-2 rounded" value={formData.classId} onChange={handleChange} />
+
+                            <div className="flex items-center space-x-2">
+                                <input type="checkbox" name="allTeachers" checked={formData.allTeachers} onChange={handleChange} />
+                                <label>Allow all teachers</label>
+                            </div>
+
+                            {!formData.allTeachers && (
+                                <div>
+                                    <label className="block text-sm font-medium mb-2">Assign Teachers</label>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {teachers.map(t => (
+                                            <div key={t._id} className="flex items-center space-x-2">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={formData.assignedTeachers.includes(t._id)}
+                                                    onChange={() => handleTeacherSelect(t._id)}
+                                                />
+                                                <span>{t.name}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </>
                     )}
 
-                    <div className="flex justify-end space-x-4 mt-6">
-                        <button type="button" onClick={handleClose} className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400">Cancel</button>
-                        <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Create User</button>
+                    <div className="flex justify-end space-x-2">
+                        <button type="button" onClick={handleClose} className="px-4 py-2 bg-gray-300 rounded">Cancel</button>
+                        <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded">Save</button>
                     </div>
                 </form>
             </div>

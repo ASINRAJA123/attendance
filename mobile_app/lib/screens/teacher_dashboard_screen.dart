@@ -18,6 +18,7 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
   int _countdown = 20;
   Timer? _timer;
   bool _isLoading = false;
+  List<String> _students = [];
 
   void _startTimer() {
     _countdown = 20;
@@ -31,7 +32,10 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
         setState(() => _countdown--);
       } else {
         _timer?.cancel();
-        setState(() => _otp = null);
+        setState(() {
+          _otp = null;
+          _students.clear();
+        });
       }
     });
   }
@@ -54,6 +58,19 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
     }
   }
 
+  // Simulated fetch (replace with API call)
+  Future<void> _fetchAttendance() async {
+  if (_otp == null) return;
+  final token = Provider.of<AuthProvider>(context, listen: false).token;
+  if (token == null) {
+    showSnackBar(context, "Authentication error", isError: true);
+    return;
+  }
+  final students = await _apiService.getMarkedStudents(_otp!, token);
+  setState(() => _students = students);
+}
+
+
   @override
   void dispose() {
     _timer?.cancel();
@@ -74,19 +91,37 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
           ),
         ],
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+      body: RefreshIndicator(
+        onRefresh: _fetchAttendance,
+        child: ListView(
+          padding: const EdgeInsets.all(20),
           children: [
             if (_otp != null) ...[
               const Text('Show this OTP to your students:', style: TextStyle(fontSize: 20)),
               const SizedBox(height: 20),
-              Text(_otp!, style: const TextStyle(fontSize: 60, fontWeight: FontWeight.bold, letterSpacing: 12)),
+              Center(
+                child: Text(_otp!,
+                    style: const TextStyle(fontSize: 60, fontWeight: FontWeight.bold, letterSpacing: 12)),
+              ),
               const SizedBox(height: 20),
-              Text('Expires in $_countdown seconds', style: const TextStyle(fontSize: 18, color: Colors.red)),
+              Center(
+                child: Text('Expires in $_countdown seconds',
+                    style: const TextStyle(fontSize: 18, color: Colors.red)),
+              ),
+              const SizedBox(height: 30),
+              const Text("Students who marked attendance:",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 10),
+              if (_students.isEmpty)
+                const Text("No student has marked attendance yet.")
+              else
+                ..._students.map((s) => ListTile(
+                      leading: const Icon(Icons.person, color: Colors.blue),
+                      title: Text(s),
+                    )),
             ] else ...[
               if (_isLoading)
-                const CircularProgressIndicator()
+                const Center(child: CircularProgressIndicator())
               else
                 ElevatedButton(
                   onPressed: _generateOtp,
