@@ -3,13 +3,22 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api/axiosConfig';
 
+// --- NEW: Define the predefined time slots ---
+const PREDEFINED_PERIODS = [
+    '09:00 AM - 10:00 AM',
+    '10:00 AM - 11:00 AM',
+    '11:00 AM - 12:00 PM',
+    '01:00 PM - 02:00 PM',
+    '02:00 PM - 03:00 PM',
+];
+
 const GrantOtpPage = () => {
     // State to hold the list of all teachers
     const [teachers, setTeachers] = useState([]);
     
     // State for the form inputs
     const [selectedTeacherId, setSelectedTeacherId] = useState('');
-    const [period, setPeriod] = useState('');
+    const [selectedPeriod, setSelectedPeriod] = useState(''); // Changed from 'period' for clarity
 
     // State for the API response and UI control
     const [generatedOtp, setGeneratedOtp] = useState(null);
@@ -18,7 +27,6 @@ const GrantOtpPage = () => {
     const [isGenerating, setIsGenerating] = useState(false);
     const [error, setError] = useState('');
 
-    // Fetch all users with the role 'teacher' when the component mounts
     useEffect(() => {
         const fetchTeachers = async () => {
             try {
@@ -34,12 +42,11 @@ const GrantOtpPage = () => {
         fetchTeachers();
     }, []);
 
-    // Handle the form submission to generate the OTP
     const handleSubmit = async (e) => {
         e.preventDefault();
-        // Basic validation
-        if (!selectedTeacherId || !period) {
-            setError('Please select a teacher and enter a period.');
+        // Updated validation
+        if (!selectedTeacherId || !selectedPeriod) {
+            setError('Please select a teacher and a period.');
             return;
         }
 
@@ -50,7 +57,7 @@ const GrantOtpPage = () => {
         try {
             const { data } = await api.post('/admin/otp/grant', {
                 teacherId: selectedTeacherId,
-                period,
+                period: selectedPeriod, // Send the selected period
             });
 
             setGeneratedOtp(data.otp);
@@ -58,13 +65,13 @@ const GrantOtpPage = () => {
             
             // Clear the form for the next use
             setSelectedTeacherId('');
-            setPeriod('');
+            setSelectedPeriod('');
 
-            // Automatically hide the OTP after 60 seconds for security
+            // Automatically hide the OTP after 60 seconds
             setTimeout(() => {
                 setGeneratedOtp(null);
                 setSuccessMessage('');
-            }, 60000); // 60 seconds
+            }, 60000);
 
         } catch (err) {
             setError(err.response?.data?.message || 'An unexpected error occurred.');
@@ -73,7 +80,7 @@ const GrantOtpPage = () => {
         }
     };
     
-    // UI to display after OTP is generated
+    // UI to display after OTP is generated (No changes here)
     if (generatedOtp) {
         return (
             <div className="text-center max-w-md mx-auto">
@@ -93,11 +100,11 @@ const GrantOtpPage = () => {
         );
     }
     
-    // The main form UI
+    // The main form UI with the new period selector
     return (
         <div>
             <h1 className="text-3xl font-bold mb-6">Grant OTP for Teacher</h1>
-            <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md max-w-lg mx-auto">
+            <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md max-w-2xl mx-auto">
                 {loading ? (
                     <p>Loading teachers...</p>
                 ) : (
@@ -119,19 +126,31 @@ const GrantOtpPage = () => {
                                 ))}
                             </select>
                         </div>
+
+                        {/* --- MODIFIED SECTION: Period Selector --- */}
                         <div>
-                            <label htmlFor="period" className="block text-sm font-medium text-gray-700">Class Period</label>
-                            <input
-                                id="period"
-                                name="period"
-                                type="text"
-                                value={period}
-                                onChange={(e) => setPeriod(e.target.value)}
-                                required
-                                placeholder="e.g., 10:00 AM - 11:00 AM"
-                                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                            />
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Select a Period</label>
+                            <div className="flex flex-wrap gap-2">
+                                {PREDEFINED_PERIODS.map((period) => (
+                                    <button
+                                        key={period}
+                                        type="button" // Important: prevents form submission on click
+                                        onClick={() => setSelectedPeriod(period)}
+                                        className={`
+                                            px-3 py-2 border rounded-lg text-sm transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500
+                                            ${selectedPeriod === period 
+                                                ? 'bg-indigo-100 border-indigo-500 text-indigo-800 font-semibold shadow-sm' 
+                                                : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                                            }
+                                        `}
+                                    >
+                                        {selectedPeriod === period && '✓ '}
+                                        {period}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
+                        {/* --- END MODIFIED SECTION --- */}
                     </div>
                 )}
                 
