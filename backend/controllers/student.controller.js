@@ -19,15 +19,13 @@ exports.markAttendance = async (req, res) => {
         }
         const teacherId = student.assignedTeacher;
 
-        const validOtp = await Otp.findOne({
-            otpCode: otp,
-            teacherId: teacherId
-        });
-
+        // Check if OTP exists for this teacher
+        const validOtp = await Otp.findOne({ otpCode: otp, teacherId: teacherId });
         if (!validOtp) {
             return res.status(400).json({ message: 'Invalid or expired OTP.' });
         }
-        
+
+        // Check if attendance is already marked in last 1 hour
         const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
         const existingAttendance = await Attendance.findOne({
             studentId: studentId,
@@ -39,15 +37,20 @@ exports.markAttendance = async (req, res) => {
             return res.status(400).json({ message: 'Attendance already marked for this session.' });
         }
 
+        // Create attendance record
         await Attendance.create({
             studentId: studentId,
             teacherId: teacherId,
             classId: student.classId
         });
 
+        console.log(`POST /api/student/attendance/mark called by user: ${studentId}`);
+        console.log(`OTP used: ${otp}`);
+
         res.status(201).json({ message: 'Attendance marked successfully!' });
 
     } catch (error) {
+        console.error('Error marking attendance:', error);
         res.status(500).json({ message: 'Server Error: ' + error.message });
     }
 };

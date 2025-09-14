@@ -51,6 +51,7 @@ const UserManagementPage = () => {
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class ID</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned Teacher</th>
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
@@ -67,6 +68,7 @@ const UserManagementPage = () => {
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">{user.classId || 'N/A'}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap">{user.assignedTeacherName || 'N/A'}</td>
                                 </tr>
                             ))}
                         </tbody>

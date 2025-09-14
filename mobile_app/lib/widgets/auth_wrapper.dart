@@ -5,21 +5,54 @@ import '../screens/login_screen.dart';
 import '../screens/student_dashboard_screen.dart';
 import '../screens/teacher_dashboard_screen.dart';
 
-class AuthWrapper extends StatelessWidget {
+class AuthWrapper extends StatefulWidget {
   const AuthWrapper({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
+  State<AuthWrapper> createState() => _AuthWrapperState();
+}
 
-    if (authProvider.isAuthenticated) {
-      if (authProvider.userRole == 'teacher') {
-        return const TeacherDashboardScreen();
-      } else if (authProvider.userRole == 'student') {
-        return const StudentDashboardScreen();
-      }
+class _AuthWrapperState extends State<AuthWrapper> {
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkLogin();
+  }
+
+  Future<void> _checkLogin() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final loggedIn = await authProvider.tryAutoLogin();
+    if (mounted) {
+      setState(() => _isLoading = false);
     }
-    
+
+    if (loggedIn) {
+      // Explicitly navigate based on role
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (authProvider.userRole == 'teacher') {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const TeacherDashboardScreen()),
+          );
+        } else if (authProvider.userRole == 'student') {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const StudentDashboardScreen()),
+          );
+        }
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
     return const LoginScreen();
   }
 }

@@ -5,6 +5,10 @@ const { markAttendance } = require('../controllers/student.controller');
 
 router.use(protect, isStudent);
 
-router.post('/attendance/mark', markAttendance);
+router.post('/attendance/mark', (req, res, next) => {
+    console.log('POST /api/student/attendance/mark called by user:', req.user?.id);
+    console.log('Request body:', req.body);
+    next();
+}, markAttendance);
 
 module.exports = router;

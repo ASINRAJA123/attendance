@@ -15,12 +15,12 @@ class TeacherDashboardScreen extends StatefulWidget {
 class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
   final ApiService _apiService = ApiService();
   String? _otp;
-  int _countdown = 10;
+  int _countdown = 20;
   Timer? _timer;
   bool _isLoading = false;
 
   void _startTimer() {
-    _countdown = 10;
+    _countdown = 20;
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted) {

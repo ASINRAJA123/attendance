@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import api from '../api/axiosConfig';
 
 const AddUserModal = ({ open, handleClose, handleSubmit }) => {
     const [formData, setFormData] = useState({
@@ -7,7 +8,23 @@ const AddUserModal = ({ open, handleClose, handleSubmit }) => {
         password: '',
         role: 'student',
         classId: '',
+        assignedTeacher: '',
     });
+
+    const [teachers, setTeachers] = useState([]);
+
+    // Fetch all teachers for dropdown
+    useEffect(() => {
+        const fetchTeachers = async () => {
+            try {
+                const { data } = await api.get('/admin/users?role=teacher');
+                setTeachers(data);
+            } catch (error) {
+                console.error('Failed to fetch teachers:', error);
+            }
+        };
+        fetchTeachers();
+    }, []);
 
     if (!open) return null;
 
@@ -39,9 +56,21 @@ const AddUserModal = ({ open, handleClose, handleSubmit }) => {
                         <option value="teacher">Teacher</option>
                         <option value="admin">Admin</option>
                     </select>
+
+                    {/* Only for students */}
                     {formData.role === 'student' && (
-                        <input type="text" name="classId" placeholder="Class ID" value={formData.classId} onChange={handleChange} className="w-full p-2 border rounded-md" />
+                        <>
+                            <input type="text" name="classId" placeholder="Class ID" value={formData.classId} onChange={handleChange} className="w-full p-2 border rounded-md" />
+                            
+                            <select name="assignedTeacher" value={formData.assignedTeacher} onChange={handleChange} required className="w-full p-2 border rounded-md">
+                                <option value="">Select Teacher</option>
+                                {teachers.map(teacher => (
+                                    <option key={teacher._id} value={teacher._id}>{teacher.name} ({teacher.email})</option>
+                                ))}
+                            </select>
+                        </>
                     )}
+
                     <div className="flex justify-end space-x-4 mt-6">
                         <button type="button" onClick={handleClose} className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400">Cancel</button>
                         <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Create User</button>

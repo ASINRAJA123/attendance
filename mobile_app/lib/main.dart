@@ -4,6 +4,7 @@ import './providers/auth_provider.dart';
 import './widgets/auth_wrapper.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
 }
 
@@ -12,13 +13,11 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Using MultiProvider in case you want to add more providers later
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
-      ],
+    return ChangeNotifierProvider(
+      create: (_) => AuthProvider(),
       child: MaterialApp(
         title: 'Attendance App',
+        debugShowCheckedModeBanner: false,
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
           useMaterial3: true,
@@ -30,20 +29,7 @@ class MyApp extends StatelessWidget {
             ),
           ),
         ),
-        home: Consumer<AuthProvider>(
-          builder: (ctx, auth, _) => FutureBuilder(
-            // Check if a token is stored on the device
-            future: auth.tryAutoLogin(),
-            builder: (ctx, snapshot) {
-              // Show a loading spinner while checking
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Scaffold(body: Center(child: CircularProgressIndicator()));
-              }
-              // After checking, let the AuthWrapper decide the screen
-              return const AuthWrapper();
-            },
-          ),
-        ),
+        home: const AuthWrapper(),
       ),
     );
   }

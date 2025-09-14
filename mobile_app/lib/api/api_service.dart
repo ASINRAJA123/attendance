@@ -5,6 +5,7 @@ class ApiService {
   // Use your computer's local network IP address here, not localhost.
   static const String _baseUrl = 'http://localhost:5001/api';
 
+  // ---------------- LOGIN ----------------
   Future<Map<String, dynamic>> login(String email, String password) async {
     try {
       final response = await http.post(
@@ -13,18 +14,19 @@ class ApiService {
         body: jsonEncode({'email': email, 'password': password}),
       );
 
+      final data = jsonDecode(response.body);
+
       if (response.statusCode == 200) {
-        return jsonDecode(response.body);
+        return data;
       } else {
-        final error = jsonDecode(response.body);
-        throw Exception('Login Failed: ${error['message']}');
+        throw Exception('Login Failed: ${data['message'] ?? 'Unknown error'}');
       }
     } catch (e) {
-      // Catch network errors or other exceptions
-      throw Exception('Could not connect to the server. Please check your network.');
+      throw Exception('Error connecting to server during login: $e');
     }
   }
 
+  // ---------------- GENERATE OTP ----------------
   Future<String> generateOtp(String token) async {
     try {
       final response = await http.post(
@@ -35,18 +37,19 @@ class ApiService {
         },
       );
 
+      final data = jsonDecode(response.body);
+
       if (response.statusCode == 201) {
-        final data = jsonDecode(response.body);
         return data['otp'];
       } else {
-        final error = jsonDecode(response.body);
-        throw Exception('Failed to generate OTP: ${error['message']}');
+        throw Exception('Failed to generate OTP: ${data['message'] ?? 'Unknown error'}');
       }
     } catch (e) {
-      throw Exception('Could not connect to the server.');
+      throw Exception('Error connecting to server during OTP generation: $e');
     }
   }
 
+  // ---------------- MARK ATTENDANCE ----------------
   Future<String> markAttendance(String otp, String token) async {
     try {
       final response = await http.post(
@@ -58,15 +61,16 @@ class ApiService {
         body: jsonEncode({'otp': otp}),
       );
 
+      final data = jsonDecode(response.body);
+
       if (response.statusCode == 201) {
-        final data = jsonDecode(response.body);
         return data['message'];
       } else {
-        final error = jsonDecode(response.body);
-        throw Exception('Failed to mark attendance: ${error['message']}');
+        // Show actual backend error message instead of generic "network error"
+        throw Exception('Failed to mark attendance: ${data['message'] ?? 'Unknown error'}');
       }
     } catch (e) {
-      throw Exception('Could not connect to the server.');
+      throw Exception('Error connecting to server during attendance marking: $e');
     }
   }
 }
