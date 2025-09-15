@@ -69,32 +69,41 @@ class _OtpScreenState extends State<OtpScreen> {
                 const SizedBox(height: 16),
                 Text(
                   'Mark Your Attendance',
-                  style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Enter the 6-digit code provided by your teacher.',
                   textAlign: TextAlign.center,
-                  style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: Colors.grey[600],
+                  ),
                 ),
                 const SizedBox(height: 32),
 
                 // 2. Themed OTP Input
-                TextField(
-                  controller: _otpController,
-                  maxLength: 6,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.displaySmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 16,
-                    color: theme.primaryColor,
-                  ),
-                  decoration: const InputDecoration(
-                    counterText: '',
-                    hintText: '• • • • • •',
-                    hintStyle: TextStyle(letterSpacing: 16),
+                SizedBox(
+                  width: 260, // keeps digits aligned
+                  child: TextField(
+                    controller: _otpController,
+                    maxLength: 6,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 24, // even spacing
+                      fontFamily: 'monospace', // ensures alignment
+                      color: theme.primaryColor,
+                    ),
+                    decoration: const InputDecoration(
+                      counterText: '',
+                      hintText: '••••••',
+                      hintStyle: TextStyle(letterSpacing: 24),
+                      border: UnderlineInputBorder(),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -114,6 +123,12 @@ class _OtpScreenState extends State<OtpScreen> {
                             onPressed: _markAttendance,
                             icon: const Icon(Icons.check_circle_outline),
                             label: const Text('Submit Attendance'),
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
                           ),
                   ),
                 ),
