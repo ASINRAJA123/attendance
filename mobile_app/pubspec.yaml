@@ -45,6 +45,8 @@ dev_dependencies:
   # For simple global state management (to handle login state)
   provider: ^6.1.1
   intl: ^0.18.1     # Version might be different
+  google_fonts: ^6.1.0
+
 
 
   # For storing the auth token on the device
