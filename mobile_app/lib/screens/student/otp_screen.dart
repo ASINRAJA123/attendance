@@ -3,7 +3,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/services.dart'; // For input formatters
-import 'package:geolocator/geolocator.dart'; // ✅ Added for location
+import 'package:geolocator/geolocator.dart'; // ✅ For location
+import 'package:phone_state/phone_state.dart'; // ✅ For phone call state
+import 'package:permission_handler/permission_handler.dart'; // ✅ For runtime permission
 
 import '../../api/api_service.dart';
 import '../../providers/auth_provider.dart';
@@ -21,11 +23,33 @@ class _OtpScreenState extends State<OtpScreen> {
   final ApiService _apiService = ApiService();
   bool _isLoading = false;
 
-// ✅ Your geofence coordinates
+  // ✅ Your geofence coordinates
   static const double minLat = 11.010377;
   static const double maxLat = 29.233193;
   static const double minLon = -8.961771;
   static const double maxLon = 40.620639;
+
+  Future<bool> _isOnCall() async {
+    try {
+      var phonePermission = await Permission.phone.status;
+      if (!phonePermission.isGranted) {
+        phonePermission = await Permission.phone.request();
+      }
+      if (!phonePermission.isGranted) {
+        showSnackBar(context, 'Phone state permission denied.', isError: true);
+        return true; // Block if no permission
+      }
+
+      // ✅ Correct way: PhoneState.stream.first
+      PhoneStateStatus status = (await PhoneState.stream.first) as PhoneStateStatus;
+
+      return (status == PhoneStateStatus.CALL_INCOMING ||
+          status == PhoneStateStatus.CALL_STARTED);
+    } catch (e) {
+      debugPrint("Phone state check failed: $e");
+      return false; // fallback: allow
+    }
+  }
 
   Future<void> _markAttendance() async {
     if (_otpController.text.length != 6) {
@@ -37,6 +61,15 @@ class _OtpScreenState extends State<OtpScreen> {
     setState(() => _isLoading = true);
 
     try {
+      // ✅ Step 0: Check phone call status
+      if (await _isOnCall()) {
+        showSnackBar(
+            context, 'Attendance cannot be marked while you are on a call.',
+            isError: true);
+        setState(() => _isLoading = false);
+        return;
+      }
+
       // ✅ Step 1: Check location permissions
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
@@ -62,7 +95,8 @@ class _OtpScreenState extends State<OtpScreen> {
 
       // ✅ Step 3: Check if inside geofence
       if (!(lat >= minLat && lat <= maxLat && lon >= minLon && lon <= maxLon)) {
-        showSnackBar(context, 'You are not inside the allowed location.', isError: true);
+        showSnackBar(context, 'You are not inside the allowed location.',
+            isError: true);
         setState(() => _isLoading = false);
         return;
       }
@@ -75,11 +109,11 @@ class _OtpScreenState extends State<OtpScreen> {
         return;
       }
 
-      final result = await _apiService.markAttendance(_otpController.text, token);
+      final result =
+          await _apiService.markAttendance(_otpController.text, token);
       final message = result['message'] ?? 'Attendance marked successfully!';
       showSnackBar(context, message);
       _otpController.clear();
-
     } catch (e) {
       showSnackBar(context, e.toString(), isError: true);
     } finally {
@@ -96,7 +130,8 @@ class _OtpScreenState extends State<OtpScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Card(
           elevation: 4,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           child: Padding(
             padding: const EdgeInsets.all(24.0),
             child: Column(
@@ -166,7 +201,8 @@ class _OtpScreenState extends State<OtpScreen> {
                             icon: const Icon(Icons.check_circle_outline),
                             label: const Text('Submit Attendance'),
                             style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 14),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),

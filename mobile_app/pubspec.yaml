@@ -30,10 +30,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.8
+  geolocator: ^13.0.4
+  permission_handler: ^11.0.1
+  phone_state: ^2.1.1
 
 dev_dependencies:
   flutter_test:
@@ -46,7 +45,7 @@ dev_dependencies:
   provider: ^6.1.1
   intl: ^0.18.1     # Version might be different
   google_fonts: ^6.1.0
-  geolocator: ^13.0.1   # check latest version
+  geolocator: ^13.0.4   # check latest version
 
 
   # For storing the auth token on the device
