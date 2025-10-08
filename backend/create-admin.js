@@ -20,6 +20,8 @@ const createAdmin = async () => {
         const name = prompt('Enter admin full name: ');
         const email = prompt('Enter admin email: ');
         const password = prompt.hide('Enter admin password: ');
+        const role = prompt('Enter role: ');
+        const rollNo = prompt('Enter roll number: ');
 
         if (!name || !email || !password) {
             console.error('All fields are required.');
@@ -38,7 +40,8 @@ const createAdmin = async () => {
             name,
             email,
             passwordHash: password, // The pre-save hook in your model will hash this automatically!
-            role: 'admin',
+            role: role,
+            rollNumber: rollNo,
         });
 
         await admin.save();

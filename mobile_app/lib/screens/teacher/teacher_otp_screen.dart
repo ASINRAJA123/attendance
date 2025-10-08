@@ -8,6 +8,12 @@ import '../../providers/auth_provider.dart';
 import '../../api/api_service.dart';
 import '../../utils/snackbar_helper.dart';
 
+// --- UI Color Palette ---
+const Color primaryAccent = Color(0xFFA4DFFF);
+const Color primaryBlack = Color(0xFF000000);
+const Color whiteBackground = Color(0xFFFFFFFF);
+const Color secondaryText = Color(0xFF616161);
+
 class TeacherOtpScreen extends StatefulWidget {
   const TeacherOtpScreen({super.key});
 
@@ -25,7 +31,7 @@ class _TeacherOtpScreenState extends State<TeacherOtpScreen> {
   String? _selectedPeriod;
 
   String? _otp;
-  int _countdown = 60; // Increased to 60 seconds for practicality
+  int _countdown = 60;
   Timer? _timer;
   bool _isLoading = false;
 
@@ -66,7 +72,7 @@ class _TeacherOtpScreenState extends State<TeacherOtpScreen> {
       final otp = await _apiService.generateOtp(_selectedPeriod!, token);
       setState(() => _otp = otp);
       _startTimer();
-      HapticFeedback.lightImpact(); // Give user feedback
+      HapticFeedback.lightImpact();
     } catch (e) {
       showSnackBar(context, e.toString(), isError: true);
     } finally {
@@ -82,120 +88,194 @@ class _TeacherOtpScreenState extends State<TeacherOtpScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final primaryColor = theme.primaryColor;
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 400),
-        transitionBuilder: (child, animation) {
-          return FadeTransition(
-            opacity: animation,
-            child: ScaleTransition(scale: animation, child: child),
-          );
-        },
-        child: _otp == null
-            ? _buildOtpGenerationCard(theme, primaryColor)
-            : _buildOtpDisplayCard(theme, primaryColor),
-      ),
-    );
-  }
-
-  // Widget for the OTP Generation State
-  Widget _buildOtpGenerationCard(ThemeData theme, Color primaryColor) {
-    return Card(
-      key: const ValueKey('generate'),
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Generate New OTP', style: theme.textTheme.titleLarge),
-            const SizedBox(height: 8),
-            Text(
-              'Select a period to generate a one-time password for student attendance.',
-              style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
-            ),
-            const Divider(height: 32),
-            Wrap(
-              spacing: 8.0,
-              runSpacing: 8.0,
-              children: _periods.map((period) {
-                final isSelected = _selectedPeriod == period;
-                return ChoiceChip(
-                  label: Text(period),
-                  selected: isSelected,
-                  onSelected: (selected) => setState(() => _selectedPeriod = selected ? period : null),
-                  selectedColor: primaryColor,
-                  labelStyle: TextStyle(color: isSelected ? Colors.white : Colors.black),
-                  pressElevation: 5.0,
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : ElevatedButton.icon(
-                      onPressed: _selectedPeriod != null ? _generateOtp : null,
-                      icon: const Icon(Icons.vpn_key_outlined),
-                      label: const Text('Generate OTP'),
-                    ),
-            ),
-          ],
+    return Scaffold(
+      backgroundColor: whiteBackground,
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 400),
+            transitionBuilder: (child, animation) {
+              return FadeTransition(
+                opacity: animation,
+                child: ScaleTransition(scale: animation, child: child),
+              );
+            },
+            child: _otp == null
+                ? _buildOtpGenerationCard()
+                : _buildOtpDisplayCard(),
+          ),
         ),
       ),
     );
   }
 
-  // Widget for the OTP Display State
-  Widget _buildOtpDisplayCard(ThemeData theme, Color primaryColor) {
-    final seconds = (_countdown % 60).toString().padLeft(2, '0');
-
-    return Card(
-      key: const ValueKey('display'),
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          children: [
-            Text('Active OTP for $_selectedPeriod', style: theme.textTheme.titleMedium),
-            const SizedBox(height: 24),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              decoration: BoxDecoration(
-                color: primaryColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: primaryColor),
-              ),
-              child: Text(
-                _otp!,
-                style: theme.textTheme.displayMedium?.copyWith(
+  Widget _buildOtpGenerationCard() {
+    return Container(
+      key: const ValueKey('generate_card'),
+      padding: const EdgeInsets.all(24.0),
+      decoration: BoxDecoration(
+        color: whiteBackground,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 5,
+            blurRadius: 15,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Generate New OTP',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: primaryBlack,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Select a period to generate a secure code for student attendance.',
+            style: TextStyle(fontSize: 15, color: secondaryText),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 24.0),
+            child: Divider(color: Colors.grey.shade200),
+          ),
+          Wrap(
+            spacing: 10.0,
+            runSpacing: 10.0,
+            children: _periods.map((period) {
+              final isSelected = _selectedPeriod == period;
+              return ChoiceChip(
+                label: Text(period),
+                selected: isSelected,
+                onSelected: (selected) {
+                  setState(() => _selectedPeriod = selected ? period : null);
+                },
+                labelStyle: TextStyle(
+                  color: isSelected ? primaryBlack : secondaryText,
                   fontWeight: FontWeight.bold,
-                  color: primaryColor,
-                  letterSpacing: 12,
                 ),
+                backgroundColor: Colors.grey.shade100,
+                selectedColor: primaryAccent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  side: BorderSide(
+                    color: isSelected ? primaryAccent : Colors.grey.shade300,
+                  ),
+                ),
+                pressElevation: 0.0,
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 32),
+          SizedBox(
+            width: double.infinity,
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator(color: primaryAccent))
+                : ElevatedButton.icon(
+                    onPressed: _selectedPeriod != null ? _generateOtp : null,
+                    icon: const Icon(Icons.key_rounded, color: primaryBlack),
+                    label: const Text(
+                      'GENERATE OTP',
+                      style: TextStyle(
+                        color: primaryBlack,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primaryAccent,
+                      disabledBackgroundColor: Colors.grey.shade300,
+                      padding: const EdgeInsets.symmetric(vertical: 18),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      elevation: 0,
+                    ),
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOtpDisplayCard() {
+    final seconds = _countdown.toString().padLeft(2, '0');
+
+    return Container(
+      key: const ValueKey('display_card'),
+      padding: const EdgeInsets.all(24.0),
+      decoration: BoxDecoration(
+        color: whiteBackground,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 5,
+            blurRadius: 15,
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Text(
+            'Active OTP for',
+            style: TextStyle(fontSize: 15, color: secondaryText),
+          ),
+          Text(
+            _selectedPeriod!,
+            style: TextStyle(fontSize: 17, color: primaryBlack, fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            decoration: BoxDecoration(
+              color: whiteBackground,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: primaryAccent, width: 2),
+            ),
+            child: Text(
+              _otp!,
+              style: const TextStyle(
+                fontSize: 48,
+                fontWeight: FontWeight.bold,
+                color: primaryBlack,
+                letterSpacing: 12,
+                fontFamily: 'monospace',
               ),
             ),
-            const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+          ),
+          const SizedBox(height: 24),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.red.shade50,
+              borderRadius: BorderRadius.circular(20)
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(Icons.timer_outlined, color: Colors.red.shade700, size: 20),
                 const SizedBox(width: 8),
                 Text(
                   'Expires in 00:$seconds',
-                  style: theme.textTheme.titleMedium?.copyWith(color: Colors.red.shade700),
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: Colors.red.shade800,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

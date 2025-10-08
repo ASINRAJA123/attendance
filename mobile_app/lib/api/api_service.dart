@@ -6,7 +6,7 @@ import '../models/attendance_model.dart'; // Import the new model
 
 class ApiService {
   // Use 10.0.2.2 for Android emulator to connect to localhost on your machine
-  static const String _baseUrl = 'http://localhost:5001/api';
+  static const String _baseUrl = 'http://192.168.142.217:5001/api';
 
   // ---------------- LOGIN ----------------
   Future<Map<String, dynamic>> login(String email, String password) async {

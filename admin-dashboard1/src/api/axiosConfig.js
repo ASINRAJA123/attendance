@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: 'http://10.150.252.73:5001/api', // Your backend API URL
+    baseURL: 'http://192.168.142.217:5001/api', // Your backend API URL
 });
 
 // Request interceptor to add the auth token to headers

@@ -3,8 +3,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
-import 'student/attendance_history_screen.dart'; // Ensure this file exists
-import 'student/otp_screen.dart'; // Ensure this file exists
+import 'student/attendance_history_screen.dart';
+import 'student/otp_screen.dart';
+import 'login_screen.dart'; // Import for navigation after logout
+
+// --- UI Color Palette ---
+const Color primaryAccent = Color(0xFFA4DFFF);
+const Color primaryBlack = Color(0xFF000000);
+const Color whiteBackground = Color(0xFFFFFFFF);
+const Color secondaryText = Color(0xFF616161);
 
 class StudentDashboardScreen extends StatefulWidget {
   const StudentDashboardScreen({super.key});
@@ -16,8 +23,6 @@ class StudentDashboardScreen extends StatefulWidget {
 class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
   int _selectedIndex = 0;
 
-  // IMPORTANT: For IndexedStack or PageView, you would create the screens once.
-  // For a simple switcher like this, it's fine.
   static const List<Widget> _widgetOptions = <Widget>[
     OtpScreen(),
     AttendanceHistoryScreen(),
@@ -31,83 +36,78 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Get theme colors for consistency
-    final theme = Theme.of(context);
-    final primaryColor = theme.primaryColor;
-
     final user = Provider.of<AuthProvider>(context).user;
     final title = user?.name ?? 'Student';
     final subtitle = user?.rollNumber ?? user?.email ?? '';
 
     return Scaffold(
-      // The AppBar is removed in favor of a custom header in the body
+      backgroundColor: whiteBackground,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. Custom Header Section
-            _buildCustomHeader(context, title, subtitle, primaryColor),
+            // --- 1. Professional Custom Header ---
+            _buildCustomHeader(context, title, subtitle),
 
-            // 2. Animated Body Content
+            // --- 2. Animated Body Content ---
             Expanded(
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 300),
                 transitionBuilder: (child, animation) {
-                  return FadeTransition(
-                    opacity: animation,
-                    child: child,
-                  );
+                  return FadeTransition(opacity: animation, child: child);
                 },
-                child: Padding(
-                  // Add padding around the actual screen content
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  // Use a Key to tell the AnimatedSwitcher that the widget has changed
-                  child: _widgetOptions.elementAt(_selectedIndex),
-                ),
+                // The key tells the AnimatedSwitcher that the widget has changed
+                child: _widgetOptions.elementAt(_selectedIndex),
               ),
             ),
           ],
         ),
       ),
-      // 3. Styled Bottom Navigation Bar
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.pin_outlined),
-            activeIcon: Icon(Icons.pin),
-            label: 'Enter OTP',
+      // --- 3. Sleek Bottom Navigation Bar ---
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: whiteBackground,
+          border: Border(
+            top: BorderSide(color: Colors.grey.shade200, width: 1.5),
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.history_outlined),
-            activeIcon: Icon(Icons.history),
-            label: 'My Attendance',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        // Theming properties
-        backgroundColor: Colors.white,
-        elevation: 8.0,
-        type: BottomNavigationBarType.fixed, // Important for background color
-        selectedItemColor: primaryColor,
-        unselectedItemColor: Colors.grey[500],
-        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
-        unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal),
-        showUnselectedLabels: true,
+        ),
+        child: BottomNavigationBar(
+          items: const <BottomNavigationBarItem>[
+            BottomNavigationBarItem(
+              icon: Icon(Icons.pin_drop_outlined),
+              activeIcon: Icon(Icons.pin_drop),
+              label: 'Mark Attendance',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.history_outlined),
+              activeIcon: Icon(Icons.history),
+              label: 'History',
+            ),
+          ],
+          currentIndex: _selectedIndex,
+          onTap: _onItemTapped,
+          backgroundColor: Colors.transparent, // Uses container's color
+          elevation: 0,
+          type: BottomNavigationBarType.fixed,
+          selectedItemColor: primaryBlack,
+          unselectedItemColor: secondaryText,
+          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal, fontSize: 12),
+        ),
       ),
     );
   }
 
   // Helper widget for the custom header
-  Widget _buildCustomHeader(BuildContext context, String title, String subtitle, Color primaryColor) {
+  Widget _buildCustomHeader(BuildContext context, String title, String subtitle) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
       child: Row(
         children: [
           CircleAvatar(
-            radius: 28,
-            backgroundColor: primaryColor.withOpacity(0.1),
-            child: Icon(Icons.person_outline, size: 32, color: primaryColor),
+            radius: 26,
+            backgroundColor: primaryAccent.withOpacity(0.3),
+            child: const Icon(Icons.person_outline, size: 28, color: primaryBlack),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -116,26 +116,32 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
               children: [
                 Text(
                   'Welcome, $title',
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleLarge
-                      ?.copyWith(fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: primaryBlack,
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
-                if (subtitle.isNotEmpty)
+                if (subtitle.isNotEmpty) ...[
+                  const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+                    style: const TextStyle(fontSize: 14, color: secondaryText),
                   ),
+                ]
               ],
             ),
           ),
           const SizedBox(width: 16),
           IconButton(
-            icon: Icon(Icons.logout_outlined, color: Colors.grey[700]),
+            icon: const Icon(Icons.logout_outlined, color: secondaryText),
             onPressed: () {
               Provider.of<AuthProvider>(context, listen: false).logout();
-              Navigator.of(context).pushNamedAndRemoveUntil('/', (Route<dynamic> route) => false);
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (context) => const LoginScreen()),
+                (Route<dynamic> route) => false,
+              );
             },
             tooltip: 'Logout',
           ),

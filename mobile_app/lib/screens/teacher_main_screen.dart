@@ -3,8 +3,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
-import 'teacher/teacher_otp_screen.dart'; // Ensure this file exists
-import 'teacher/teacher_report_screen.dart'; // Ensure this file exists
+import 'teacher/teacher_otp_screen.dart';
+import 'teacher/teacher_report_screen.dart';
+import 'login_screen.dart'; // Import for navigation after logout
+
+// --- UI Color Palette ---
+const Color primaryAccent = Color(0xFFA4DFFF);
+const Color primaryBlack = Color(0xFF000000);
+const Color whiteBackground = Color(0xFFFFFFFF);
+const Color secondaryText = Color(0xFF616161);
 
 class TeacherMainScreen extends StatefulWidget {
   const TeacherMainScreen({super.key});
@@ -29,94 +36,94 @@ class _TeacherMainScreenState extends State<TeacherMainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final primaryColor = theme.primaryColor;
-
     final user = Provider.of<AuthProvider>(context).user;
     final title = user?.name ?? 'Teacher';
 
     return Scaffold(
-      // AppBar removed for a custom, integrated header
+      backgroundColor: whiteBackground,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. Custom Header Section
-            _buildCustomHeader(context, title, primaryColor),
+            // --- 1. Professional Custom Header ---
+            _buildCustomHeader(context, title),
 
-            // 2. Animated Body Content
+            // --- 2. Animated Body Content ---
             Expanded(
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 300),
                 transitionBuilder: (child, animation) {
                   return FadeTransition(opacity: animation, child: child);
                 },
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  // The key is crucial for AnimatedSwitcher to detect a change
-                  child: _widgetOptions.elementAt(_selectedIndex),
-                ),
+                child: _widgetOptions.elementAt(_selectedIndex),
               ),
             ),
           ],
         ),
       ),
-      // 3. Styled Bottom Navigation Bar
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.pin_outlined),
-            activeIcon: Icon(Icons.pin),
-            label: 'Generate OTP',
+      // --- 3. Sleek Bottom Navigation Bar ---
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: whiteBackground,
+          border: Border(
+            top: BorderSide(color: Colors.grey.shade200, width: 1.5),
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.analytics_outlined),
-            activeIcon: Icon(Icons.analytics),
-            label: 'Report',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        // Theming properties to match the app's style
-        backgroundColor: Colors.white,
-        elevation: 8.0,
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: primaryColor,
-        unselectedItemColor: Colors.grey[500],
-        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
-        unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal),
-        showUnselectedLabels: true,
+        ),
+        child: BottomNavigationBar(
+          items: const <BottomNavigationBarItem>[
+            BottomNavigationBarItem(
+              icon: Icon(Icons.qr_code_scanner_outlined),
+              activeIcon: Icon(Icons.qr_code_scanner),
+              label: 'Generate OTP',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.analytics_outlined),
+              activeIcon: Icon(Icons.analytics),
+              label: 'Report',
+            ),
+          ],
+          currentIndex: _selectedIndex,
+          onTap: _onItemTapped,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          type: BottomNavigationBarType.fixed,
+          selectedItemColor: primaryBlack,
+          unselectedItemColor: secondaryText,
+          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal, fontSize: 12),
+        ),
       ),
     );
   }
 
   // Helper widget for the custom header
-  Widget _buildCustomHeader(BuildContext context, String title, Color primaryColor) {
+  Widget _buildCustomHeader(BuildContext context, String title) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
       child: Row(
         children: [
           CircleAvatar(
-            radius: 28,
-            backgroundColor: primaryColor.withOpacity(0.1),
-            // A more fitting icon for a teacher/admin role
-            child: Icon(Icons.school_outlined, size: 32, color: primaryColor),
+            radius: 26,
+            backgroundColor: primaryAccent.withOpacity(0.3),
+            child: const Icon(Icons.school_outlined, size: 28, color: primaryBlack),
           ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   'Welcome,',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+                  style: TextStyle(fontSize: 14, color: secondaryText),
                 ),
+                const SizedBox(height: 2),
                 Text(
                   title,
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleLarge
-                      ?.copyWith(fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: primaryBlack,
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
@@ -124,10 +131,13 @@ class _TeacherMainScreenState extends State<TeacherMainScreen> {
           ),
           const SizedBox(width: 16),
           IconButton(
-            icon: Icon(Icons.logout_outlined, color: Colors.grey[700]),
+            icon: const Icon(Icons.logout_outlined, color: secondaryText),
             onPressed: () {
               Provider.of<AuthProvider>(context, listen: false).logout();
-              Navigator.of(context).pushNamedAndRemoveUntil('/', (Route<dynamic> route) => false);
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (context) => const LoginScreen()),
+                (Route<dynamic> route) => false,
+              );
             },
             tooltip: 'Logout',
           ),
